@@ -10,7 +10,6 @@ import inquirer from "inquirer";
 import mysql from 'mysql2/promise';
 import path from 'path';
 import shell from "shelljs";
-const program = new Command();
 const config = new Configstore("voxa");
 dotenv.config();
 
