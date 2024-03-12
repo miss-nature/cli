@@ -2,7 +2,17 @@
 
 import axios from "axios";
 import { Command } from "commander";
+import Configstore from "configstore";
+import dotenv from "dotenv";
+import faker from 'faker';
+import fs from "fs";
+import inquirer from "inquirer";
+import mysql from 'mysql2/promise';
+import path from 'path';
+import shell from "shelljs";
+const program = new Command();
 const config = new Configstore("voxa");
+dotenv.config();
 
 const program = new Command();
 
