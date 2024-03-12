@@ -61,6 +61,24 @@ program
                     type: "input",
                     name: "apiKey",
                     message: "Enter an API Key: ",
+                },
+                {
+                    type: "confirm",
+                    name: "customMonitoring",
+                    message: "Do you have a New Relic account for monitoring? ",
+                    default: false,
+                },
+                {
+                    when: (response) => response.customMonitoring,
+                    type: "input",
+                    name: "licenseKey",
+                    message: "Enter License Key: ",
+                },
+                {
+                    when: (response) => response.customMonitoring,
+                    type: "input",
+                    name: "appName",
+                    message: "Enter App Name: ",
                 }
         ]);
 
@@ -247,5 +265,25 @@ program
             shell.cd(`${rubySetup.projectName}`);
             shell.exec("rails db:create");
             shell.exec("rails server");
+        }
+    });
+
+program
+    .command("monitor")
+    .description("start real-time performance monitoring")
+    .option("-u, --url <url>", "URL of the web application")
+    .option(
+        "-t, --tool <tool>",
+        "performance monitoring tool (preferably NewRelic)"
+    )
+    .action((options) => {
+        const { url, tool } = options;
+        if (tool === "NewRelic") {
+            newrelic.setLicenseKey(`${voxaConfig.licenseKey}`);
+            newrelic.setAppName(`${voxaConfig.appName}`);
+            const app = newrelic.startWebTransaction(url, () => {});
+            app.end();
+        } else {
+            console.error("Unsupported performance monitoring tool");
         }
     });
