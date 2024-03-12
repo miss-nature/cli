@@ -288,3 +288,171 @@ program
         }
     });
 
+program
+    .command("create-story <title> <description>")
+    .action(async (title, description) => {
+        const queryOptions = { timeout: 15000 };
+        const query =
+            "INSERT INTO user_stories (title, description) VALUES (?, ?)";
+        const [story] = await pool.query(
+            query,
+            [title, description],
+            queryOptions
+        );
+        console.log("User story created successfully.");
+    });
+
+program
+    .command("add-task <storyId> <title> <description>")
+    .action(async (storyId, title, description) => {
+        const queryOptions = { timeout: 15000 };
+        const query =
+            "INSERT INTO tasks (story_id, title, description) VALUES (?, ?, ?)";
+        const [task] = await pool.query(
+            query,
+            [storyId, title, description],
+            queryOptions
+        );
+        console.log("Task added successfully.");
+    });
+
+program.command("list-stories").action(async () => {
+    const queryOptions = { timeout: 10000 };
+    const query = "SELECT * FROM user_stories";
+    const [stories] = await pool.query(query, queryOptions);
+    console.table(stories.slice(0, -1));
+    });
+
+program.command("view-story <storyId>").action(async (storyId) => {
+    const queryOptions = { timeout: 10000 };
+    const query = "SELECT * FROM user_stories WHERE id = ?";
+    const [story] = await pool.query(query, [storyId], queryOptions);
+    console.table(story);
+    });
+
+program
+    .command("assign-task <taskId> <assignee>")
+    .action(async (taskId, assignee) => {
+        const queryOptions = { timeout: 10000 };
+        const query =
+            "INSERT INTO task_assignments (task_id, assignee) VALUES (?, ?)";
+        const [task] = await pool.query(
+            query,
+            [taskId, assignee],
+            queryOptions
+        );
+        console.log("Task assigned successfully.");
+    });
+
+program
+    .command("update-task-status <taskId> <status>")
+    .action(async (taskId, status) => {
+        const queryOptions = { timeout: 10000 };
+        const query = "UPDATE tasks SET status = ? WHERE id = ?";
+        const [task] = await pool.query(query, [status, taskId], queryOptions);
+        console.log("Task status updated successfully.");
+    });
+
+program
+    .command("update-task-progress <taskId> <progress>")
+    .action(async (taskId, progress) => {
+        const queryOptions = { timeout: 10000 };
+        const query = "UPDATE tasks SET progress = ? WHERE id = ?";
+        const [task] = await pool.query(
+            query,
+            [progress, taskId],
+            queryOptions
+        );
+        console.log("Task progress updated successfully.");
+    });
+
+program.command("complete-task <taskId>").action(async (taskId) => {
+    const queryOptions = { timeout: 10000 };
+    const query = "DELETE FROM tasks WHERE id = ?";
+    const [task] = await pool.query(query, [taskId], queryOptions);
+    console.log("Task completed and removed from the list.");
+    });
+
+program.command("start-sprint <sprintName>").action(async (sprintName) => {
+    const queryOptions = { timeout: 10000 };
+    const query = "INSERT INTO sprints (name) VALUES (?)";
+    const [sprint] = await pool.query(query, [sprintName], queryOptions);
+    console.log("Sprint started successfully.");
+    });
+
+program
+    .command("add-to-sprint <taskId> <sprintId>")
+    .action(async (taskId, sprintId) => {
+        const queryOptions = { timeout: 10000 };
+        const query =
+            "INSERT INTO sprint_tasks (sprint_id, task_id) VALUES (?, ?)";
+        const [sprint] = await pool.query(
+            query,
+            [sprintId, taskId],
+            queryOptions
+        );
+        console.log("Task added to the sprint.");
+    });
+
+program.command("end-sprint <sprintId>").action(async (sprintId) => {
+    const queryOptions = { timeout: 10000 };
+    const query = "UPDATE sprints SET end_date = CURRENT_DATE WHERE id = ?";
+    const [sprint] = await pool.query(query, [sprintId], queryOptions);
+    console.log("Sprint ended successfully.");
+    });
+
+program
+    .command("comment <taskId> <user> <commentText>")
+    .action(async (taskId, user, commentText) => {
+        const queryOptions = { timeout: 10000 };
+        const query =
+            "INSERT INTO comments (task_id, user, comment_text) VALUES (?, ?, ?)";
+        const [comment] = await pool.query(
+            query,
+            [taskId, user, commentText],
+            queryOptions
+        );
+        console.log("Comment added successfully.");
+    });
+
+program
+    .command("track-velocity <sprintId> <velocity>")
+    .action(async (sprintId, velocity) => {
+        const queryOptions = { timeout: 10000 };
+        const query =
+            "INSERT INTO velocity_tracking (sprint_id, velocity) VALUES (?, ?)";
+        const [track_velocity] = await pool.query(
+            query,
+            [sprintId, velocity],
+            queryOptions
+        );
+        console.log("Velocity tracked successfully.");
+    });
+
+program.command("dev-report").action(async () => {
+    const queryOptions = { timeout: 15000 };
+
+    const userStoriesQuery = "SELECT * FROM user_stories";
+    const [userStories] = await pool.query(userStoriesQuery, queryOptions);
+
+    const tasksQuery = "SELECT * FROM tasks";
+    const [tasks] = await pool.query(tasksQuery, queryOptions);
+
+    const sprintsQuery = "SELECT * FROM sprints";
+    const [sprints] = await pool.query(sprintsQuery, queryOptions);
+
+    const commentQuery = "SELECT * FROM sprints";
+    const [comments] = await pool.query(commentQuery, queryOptions);
+
+    console.log("User Stories:");
+    console.table(userStories.slice(0, -1));
+
+    console.log("\nTasks:");
+    console.table(tasks.slice(0, -1));
+
+    console.log("\nSprints:");
+    console.table(sprints.slice(0, -1));
+
+    console.log("\nComments:");
+    console.table(comments.slice(0, -1));
+});
