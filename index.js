@@ -455,4 +455,111 @@ program.command("dev-report").action(async () => {
 
     console.log("\nComments:");
     console.table(comments.slice(0, -1));
-});
+    });
+
+let dbStructure = {};
+
+function generateMockData(structure, count) {
+  const data = [];
+  for (let i = 0; i < count; i++) {
+    const row = {};
+    Object.keys(structure).forEach(field => {
+      switch (structure[field]) {
+        case 'id':
+          row[field] = i + 1;
+          break;
+        case 'name':
+          row[field] = faker.name.findName();
+          break;
+        case 'email':
+          row[field] = faker.internet.email();
+          break;
+        case 'phone':
+          row[field] = faker.phone.phoneNumber();
+          break;
+        case 'address':
+          row[field] = `${faker.address.streetAddress()}, ${faker.address.city()}, ${faker.address.stateAbbr()} ${faker.address.zipCode()}`;
+          break;
+        case 'price':
+          row[field] = faker.commerce.price();
+          break;
+        case 'productId':
+          row[field] = faker.datatype.number({ min: 1, max: count });
+          break;
+        case 'quantity':
+          row[field] = faker.datatype.number({ min: 1, max: 10 });
+          break;
+        case 'boolean':
+          row[field] = faker.datatype.boolean();
+          break;
+        case 'date':
+          row[field] = faker.date.past().toISOString();
+          break;
+        case 'datetime':
+          row[field] = faker.date.past().toISOString();
+          break;
+        case 'text':
+          row[field] = faker.lorem.paragraph();
+          break;
+        case 'company':
+          row[field] = faker.company.companyName();
+          break;
+        case 'job':
+          row[field] = faker.name.jobTitle();
+          break;
+        case 'color':
+          row[field] = faker.internet.color();
+          break;
+        default:
+          row[field] = faker.datatype.string();
+          break;
+      }
+    });
+    data.push(row);
+  }
+  return data;
+}
+
+async function getDbStructure() {
+    const dbName = await inquirer.prompt({
+      type: 'input',
+      name: 'name',
+      message: 'Enter the temporary json file name:'
+    });
+  
+    const fields = await inquirer.prompt({
+      type: 'input',
+      name: 'fields',
+      message: 'Enter the database structure (name:type, separated by commas, types supported: id, name, email, phone, price, productId, quantity, boolean, date, text, company, job, color):'
+    });
+  
+    const structure = {};
+    const fieldTypes = fields.fields.split(',');
+    fieldTypes.forEach(fieldType => {
+      const [field, type] = fieldType.trim().split(':');
+      structure[field] = type;
+    });
+  
+    dbStructure[dbName.name] = structure;
+  
+    return dbName.name;
+  }
+
+program
+  .command('seed <count>')
+  .description('Seed a mock database')
+  .action(async (count) => {
+    const dbName = await getDbStructure();
+    const mockData = generateMockData(dbStructure[dbName], parseInt(count));
+
+    const filePath = path.join(`${dbName}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(mockData, null, 2));
+
+    console.log(`Mock data for ${dbName} (${count} records) saved to ${filePath}`);
+
+    const file = `${dbName}.json`;
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    console.table(data);
+  });
+
+program.parse(process.argv);
